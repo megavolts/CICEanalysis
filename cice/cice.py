@@ -91,18 +91,17 @@ def to_leap_year(data, scale_to_thickness = False):
         data = data.interpolate(method='time')
 
     # clear nan value
-    data = data.dropna(axis=0, how='all')
     data = data.reset_index()
     data = data.rename(columns={'index': 'datetime'})
     return data
 
 
-def extract_core_day(cice_data, days, location=None, run=None, y_ref='top', variables=variable_abv.keys()):
+def extract_core_day(cice_data, days, location=None, run=None, y_ref='top', variables=list(variable_abv.keys())):
     import seaice
     """
 
     :param cice_data:
-    :param day:
+    :param days: datetime.datetime or pandas.datetime 
     :param location:
     :param run:
     :return:
@@ -114,20 +113,13 @@ def extract_core_day(cice_data, days, location=None, run=None, y_ref='top', vari
     if not isinstance(days, list):
         days = [days]
 
-    for day in days:
-        if not isinstance(day, pd.datetime):
-            logger.error('%s is not a day. %s removed from the importation list' % (day, day))
-            days = [d for d in days if d is not day]
-    days = [pd.Timestamp(d) for d in days]
-
     ic_dict = {}
-
     if days == []:
         return seaice.Core()
     else:
         for day in days:
             if cice_data[cice_data.datetime == day].empty:
-                logger.warning('%s no data for this day. Impossible to extract ice core' % day)
+                logger.warning('%s Ice thickness is zero. No ice core are extracted' % day)
             else:
                 if location is None:
                     name = 'CICE-' + day.strftime('%Y%m%d')
@@ -152,18 +144,19 @@ def extract_core_day(cice_data, days, location=None, run=None, y_ref='top', vari
 
                 profile = pd.DataFrame()
                 for var in variables:
-                    col = [variable_abv[var] + '_' + str(n) for n in range(0, n_layer+1)]
-                    variable = cice_data.loc[cice_data.datetime == day, col]
-                    variable = pd.DataFrame(variable.transpose(), columns=[var], index=y_mid)
+                    col = [variable_abv[var] + '_' + str(n) for n in range(0, n_layer)]
+                    data = cice_data.loc[cice_data.datetime == day, col].values[0]
+                    variable = pd.DataFrame(data.transpose(), columns=[var], index=y_mid)
                     variable['length'] = [ice_thickness]*len(variable.index)
                     variable['variable'] = [var]*len(variable.index)
                     variable['v_ref'] = [y_ref]*len(variable.index)
                     if var not in ['temperature']:
                         variable['y_low'] = y[:n_layer]
-                        variable['y_low'] = y[1:]
+                        variable['y_sup'] = y[1:]
                     else:
                         variable['y_low'] = [np.nan]*len(variable.index)
-                        variable['y_low'] = [np.nan]*len(variable.index)
+                        variable['y_sup'] = [np.nan]*len(variable.index)
+                    variable['y_mid'] = y_mid
                     variable['name'] = [name]*len(variable.index)
                     profile = profile.append(variable, sort=False)
                 ic.add_profile(profile)
