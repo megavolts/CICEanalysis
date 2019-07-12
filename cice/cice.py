@@ -77,7 +77,8 @@ def to_leap_year(data, scale_to_thickness = False):
     for ly in leap_year:
         index = pd.date_range(str(ly) + '-02-29 00', str(ly) + '-02-29 23', freq='1h')
         ly_data = pd.DataFrame([[np.nan] * len(data.columns)] * len(index), columns=data.columns, index=index)
-        data = pd.concat([data, ly_data], sort=False)
+        if data.index.min() < ly_data.index.min() and ly_data.index.max() < data.index.max():
+            data = pd.concat([data, ly_data], sort=False)
     data = data.sort_index()
 
     # interpolate data over nan

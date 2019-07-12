@@ -22,7 +22,8 @@ if os.uname()[1] == 'adak':
 else:
     print('No directory defined for this machine')
 
-config_path = os.path.join(config_dir, 'CICE.ini')
+#config_path = os.path.join(config_dir, 'CICE.ini')
+config_path = os.path.join(config_dir, 'CICE-1948-2013.ini')
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # LOAD CONFIG
@@ -50,5 +51,6 @@ cice_data = cice.import_output(cice_path, n_layer=20)
 # -------------------------------------------------------------------------------------------------------------------- #
 cice_pkl = os.path.join(config_file['DEFAULT']['data_dir'], config_file[LOCATION]['subdir'],
                          config_file[LOCATION]['pickle'])
+
 with open(cice_pkl, 'wb') as f:
      pickle.dump([weather_data, cice_data], f)
