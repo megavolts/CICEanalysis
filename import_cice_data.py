@@ -23,7 +23,7 @@ else:
     print('No directory defined for this machine')
 
 #config_path = os.path.join(config_dir, 'CICE.ini')
-config_path = os.path.join(config_dir, 'CICE-1948-2013.ini')
+config_path = os.path.join(config_dir, 'CICE-SVL-1948-2013.ini')
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # LOAD CONFIG
